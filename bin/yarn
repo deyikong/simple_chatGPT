@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+docker run \
+       -i$TTY $RM \
+       -v "$(pwd)":/workdir \
+       -v ~/.npm:/root/.npm \
+       -w /workdir \
+       -p 8866:3000 \
+       "node:16.13.2-alpine" yarn "$@"

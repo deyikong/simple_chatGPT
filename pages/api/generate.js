@@ -5,6 +5,10 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+
+
+
+
 export default async function (req, res) {
   if (!configuration.apiKey) {
     res.status(500).json({
@@ -15,11 +19,11 @@ export default async function (req, res) {
     return;
   }
 
-  const animal = req.body.animal || '';
-  if (animal.trim().length === 0) {
+  const question = req.body.question || '';
+  if (question.trim().length === 0) {
     res.status(400).json({
       error: {
-        message: "Please enter a valid animal",
+        message: "Please enter a your question",
       }
     });
     return;
@@ -28,10 +32,33 @@ export default async function (req, res) {
   try {
     const completion = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: generatePrompt(animal),
+      prompt: generatePrompt(question),
       temperature: 0.6,
     });
-    res.status(200).json({ result: completion.data.choices[0].text });
+    const response = await openai.createCompletion({
+      model: "text-davinci-003",
+      prompt: " Human: " + question +"\nAI:",
+      temperature: 0.9,
+      max_tokens: 3800,
+      top_p: 1,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.6,
+      stop: [" Human:", " AI:"],
+    });
+    // const response = await openai.createCompletion({
+    //   model: "text-davinci-003",
+    //   prompt: "Q: " + question +"\nA:",
+    //   // prompt: question +"\n",
+    //   temperature: 0,
+    //   max_tokens: 100,
+    //   top_p: 1,
+    //   frequency_penalty: 0.0,
+    //   presence_penalty: 0.0,
+    //   stop: ["\n"],
+    // });
+    res.status(200).json({ result: response.data.choices[0].text });
+    // res.status(200).json({ result: JSON.stringify(response.data) });
+    // res.status(200).json({ result: completion.data.choices[0].text });
   } catch(error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
